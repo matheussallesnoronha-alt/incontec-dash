@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INCONTEC DASH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div class="mobile-tabs" id="mobileTabs"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">ID</div>
+      <div class="logo-title">INCONTEC DASH</div>
+      <div class="logo-sub">Inteligência Financeira para Construção Civil</div>
+    </div>
+    <nav id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      Conectado ao ERP UAU via n8n
+      <div class="sync-row"><span class="sync-dot"></span><span class="sync-label">Sincronizado agora</span></div>
+    </div>
+  </aside>
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="pageTitle">Dashboard</div>
+        <div class="topbar-sub" id="pageSubtitle">Visão consolidada de bancos e contas</div>
+      </div>
+      <div class="topbar-update">
+        <div class="topbar-update-label">Última atualização</div>
+        <div class="topbar-update-value">há 4 minutos</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-Dashboard">
+        <div class="banner" id="banner"></div>
+        <div class="cards" id="cards"></div>
+        <div class="charts-grid">
+          <div class="chart-card"><div class="chart-title">Evolução Financeira</div><div class="chart-wrap"><canvas id="lineChart"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Saldo por Banco</div><div class="chart-wrap"><canvas id="barChart"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Distribuição Financeira</div><div class="chart-wrap"><canvas id="pieChart"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Evolução Mensal</div><div class="chart-wrap"><canvas id="areaChart"></canvas></div></div>
+        </div>
+        <div class="ai-panel">
+          <div class="ai-header">
+            <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6FE3A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+            <div class="ai-title">INCONTEC AI</div>
+            <span class="ai-badge">Online</span>
+          </div>
+          <div class="messages" id="messages"></div>
+          <div class="quick-btns" id="quickBtns"></div>
+          <div class="input-row">
+            <input class="ai-input" id="aiInput" placeholder="Pergunte algo sobre seus dados financeiros..." />
+            <button class="send-btn" id="sendBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLUXO DE CAIXA -->
+      <div class="page" id="page-Fluxo de Caixa">
+        <div class="banner" id="banner-fluxo"></div>
+        <div class="fluxo-grid">
+          <div class="fluxo-card">
+            <div class="chart-title" id="fluxo-entradas-title">Entradas (Recebimentos)</div>
+            <div class="fluxo-row"><span>Total no período</span><span class="fluxo-pos" id="fluxo-entradas-total">—</span></div>
+            <div class="fluxo-row"><span>Média diária</span><span class="fluxo-pos" id="fluxo-entradas-media">—</span></div>
+            <div class="fluxo-row"><span>Dias com dados</span><span id="fluxo-entradas-dias">—</span></div>
+          </div>
+          <div class="fluxo-card">
+            <div class="chart-title" id="fluxo-saidas-title">Saídas (Pagamentos)</div>
+            <div class="fluxo-row"><span>Total no período</span><span class="fluxo-neg" id="fluxo-saidas-total">—</span></div>
+            <div class="fluxo-row"><span>Média diária</span><span class="fluxo-neg" id="fluxo-saidas-media">—</span></div>
+            <div class="fluxo-row"><span>Dias com dados</span><span id="fluxo-saidas-dias">—</span></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" id="fluxo-chart-title">Saldo Diário — vw_fluxo_caixa</div>
+          <div class="chart-wrap"><canvas id="fluxoChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- CONTAS A RECEBER -->
+      <div class="page" id="page-Contas a Receber">
+        <div class="banner">
+          <span style="color:var(--accent);flex-shrink:0;margin-top:2px;width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg></span>
+          <span><span class="hi">Contas a Receber:</span> Total em aberto de <span class="val">R$&nbsp;847.300</span>. <span class="warn">3 títulos vencidos</span> aguardando cobrança.</span>
+        </div>
+        <div class="banco-table">
+          <table>
+            <thead><tr><th>Cliente</th><th>Obra</th><th>Data Venda</th><th>Valor</th><th>Status</th></tr></thead>
+            <tbody id="receber-tbody"></tbody>
+          </table>
+        </div>
+        <div class="ind-grid">
+          <div class="ind-card"><div class="ind-label">A vencer (30 dias)</div><div class="ind-value">R$ 512k</div><div class="ind-sub">6 títulos</div></div>
+          <div class="ind-card"><div class="ind-label">Vencidos</div><div class="ind-value" style="color:#E38C8C">R$ 195k</div><div class="ind-sub">3 títulos em atraso</div></div>
+          <div class="ind-card"><div class="ind-label">Recebido no mês</div><div class="ind-value">R$ 140k</div><div class="ind-sub">4 títulos liquidados</div></div>
+        </div>
+      </div>
+
+      <!-- CONTAS A PAGAR -->
+      <div class="page" id="page-Contas a Pagar">
+        <div class="banner">
+          <span style="color:#E3C26A;flex-shrink:0;margin-top:2px;width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg></span>
+          <span><span class="hi">Contas a Pagar:</span> Total comprometido de <span class="val">R$&nbsp;634.500</span> nos próximos 30 dias. <span class="warn">2 vencimentos hoje.</span></span>
+        </div>
+        <div class="banco-table">
+          <table>
+            <thead><tr><th>Fornecedor</th><th>Categoria</th><th>Data</th><th>Valor</th><th>Status</th></tr></thead>
+            <tbody id="pagar-tbody"></tbody>
+          </table>
+        </div>
+        <div class="ind-grid">
+          <div class="ind-card"><div class="ind-label">Vence hoje</div><div class="ind-value" style="color:#E3C26A">R$ 43k</div><div class="ind-sub">2 obrigações</div></div>
+          <div class="ind-card"><div class="ind-label">Próximos 7 dias</div><div class="ind-value">R$ 178k</div><div class="ind-sub">8 obrigações</div></div>
+          <div class="ind-card"><div class="ind-label">Pago no mês</div><div class="ind-value">R$ 413k</div><div class="ind-sub">22 títulos quitados</div></div>
+        </div>
+      </div>
+
+      <!-- BANCOS -->
+      <div class="page" id="page-Bancos">
+        <div class="cards" id="banco-cards"></div>
+        <div class="banco-table">
+          <table>
+            <thead><tr><th>Banco</th><th>Saldo</th><th>Participação</th></tr></thead>
+            <tbody id="bancos-tbody"></tbody>
+          </table>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Saldo por Banco</div>
+          <div class="chart-wrap"><canvas id="bancosChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- RELATÓRIOS -->
+      <div class="page" id="page-Relatórios">
+        <div class="ind-grid">
+          <div class="ind-card" id="rep-extrato" style="cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div class="card-icon" style="margin-bottom:12px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></div>
+            <div class="ind-label">Extrato Consolidado</div>
+            <div style="font-size:13px;font-weight:500">Exportar CSV</div>
+            <div class="ind-sub">Saldo de contas · todas as datas</div>
+          </div>
+          <div class="ind-card" id="rep-dre" style="cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div class="card-icon" style="margin-bottom:12px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div class="ind-label">DRE Gerencial</div>
+            <div style="font-size:13px;font-weight:500">Exportar PDF</div>
+            <div class="ind-sub">Vendas x Recebimentos · por obra</div>
+          </div>
+          <div class="ind-card" id="rep-posicao" style="cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div class="card-icon" style="margin-bottom:12px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+            <div class="ind-label">Posição de Caixa</div>
+            <div style="font-size:13px;font-weight:500">Exportar Excel</div>
+            <div class="ind-sub">Por banco · data de hoje</div>
+          </div>
+        </div>
+        <div class="banco-table">
+          <table>
+            <thead><tr><th>Relatório</th><th>Formato</th><th>Gerado às</th></tr></thead>
+            <tbody id="relatorios-log"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- INDICADORES -->
+      <div class="page" id="page-Indicadores">
+        <div class="ind-grid" id="ind-grid"></div>
+        <div class="charts-grid">
+          <div class="chart-card"><div class="chart-title">Índice de Liquidez (últimos 6 meses)</div><div class="chart-wrap"><canvas id="liqChart"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Prazo Médio de Recebimento (dias)</div><div class="chart-wrap"><canvas id="pmrChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- INCONTEC AI -->
+      <div class="page" id="page-INCONTEC AI">
+        <div class="ai-panel" style="min-height:480px">
+          <div class="ai-header">
+            <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6FE3A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+            <div class="ai-title">INCONTEC AI — Assistente Financeiro</div>
+            <span class="ai-badge">Online</span>
+          </div>
+          <div class="messages" id="messages2" style="max-height:360px"></div>
+          <div class="quick-btns" id="quickBtns2"></div>
+          <div class="input-row">
+            <input class="ai-input" id="aiInput2" placeholder="Pergunte algo sobre seus dados financeiros..." />
+            <button class="send-btn" id="sendBtn2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div>
+
+<script src="js/format.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/tables.js"></script>
+<script src="js/ai-panel.js"></script>
+</body>
+</html>
