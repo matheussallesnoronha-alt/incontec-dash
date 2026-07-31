@@ -1,6 +1,13 @@
 // ── Derived/computed values from raw Supabase rows ────
 const BANK_PALETTE = ["#6FE3A6", "#4FB888", "#3A8E69", "#2A6B4E", "#1D4D38", "#8FE8BC", "#59A57E", "#245A40"];
-function colorForIndex(i) { return BANK_PALETTE[i % BANK_PALETTE.length]; }
+
+// Hashed by name (not list position) so a bank keeps the same color across
+// charts, pages and paginated table slices.
+function colorForBank(name) {
+  let hash = 0;
+  for (let i = 0; i < (name || '').length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  return BANK_PALETTE[hash % BANK_PALETTE.length];
+}
 
 // "Participação"/"concentração" are shares of gross positive balances, not of
 // the net total — some accounts carry a negative saldo (e.g. overdrafts/factoring),

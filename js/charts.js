@@ -18,7 +18,7 @@ function renderDashboardCharts(state) {
   const mensalSaldo = fluxoMensal.map(m => m.saldo);
   const bancoLabels = bancos.map(b => b.Descri_banco);
   const bancoSaldos = bancos.map(b => b.saldo);
-  const bancoCores = bancos.map((b, i) => colorForIndex(i));
+  const bancoCores = bancos.map(b => colorForBank(b.Descri_banco));
 
   destroyChart('line'); destroyChart('bar'); destroyChart('pie'); destroyChart('area');
 
@@ -61,7 +61,7 @@ function renderBancosChart(state) {
   const { bancos } = state;
   destroyChart('bancos');
   charts.bancos = new Chart(document.getElementById('bancosChart'),{
-    type:'bar', data:{ labels:bancos.map(b=>b.Descri_banco), datasets:[{ data:bancos.map(b=>b.saldo), backgroundColor:bancos.map((b,i)=>colorForIndex(i)), borderRadius:6 }] },
+    type:'bar', data:{ labels:bancos.map(b=>b.Descri_banco), datasets:[{ data:bancos.map(b=>b.saldo), backgroundColor:bancos.map(b=>colorForBank(b.Descri_banco)), borderRadius:6 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{...TP, callbacks:{label:c=>fmtBRL(c.raw)}} },
       scales:{ x:{grid:{display:false}, border:{display:false}}, y:{grid:{color:'#1E2823', drawTicks:false}, border:{display:false}, ticks:{callback:fmtK}} } }
   });

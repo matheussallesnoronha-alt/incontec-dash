@@ -91,11 +91,11 @@ async function loadAndRender() {
   renderDashboardCards(state);
   renderFluxoPage(state);
   renderReceberBanner(state);
-  renderReceberTable(recebiveis);
   renderReceberSummaryCards(state);
+  setupReceberTable(state);
   renderPagarEmptyState();
   renderBancosCards(state);
-  renderBancosTable(state);
+  setupBancosTable(state);
   renderIndicadoresCards(state);
 
   initChartDefaults();

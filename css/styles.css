@@ -137,3 +137,21 @@ canvas { display:block; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .retry-btn { margin-top:4px; font-size:12px; padding:8px 16px; border-radius:8px; background:var(--accent-dim); color:var(--accent); border:1px solid var(--border); cursor:pointer; }
 .error-banner { background:rgba(227,140,140,.1); border:1px solid #E38C8C; border-radius:12px; padding:16px; display:flex; align-items:flex-start; gap:12px; font-size:13px; line-height:1.6; color:#E38C8C; }
+
+/* Table controls: search, filter chips, pagination, sortable headers */
+.table-controls { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.table-search { font-size:12px; padding:8px 12px; border-radius:8px; background:var(--surface2); color:var(--text); border:1px solid var(--border); outline:none; font-family:'Inter',sans-serif; min-width:220px; }
+.table-search::placeholder { color:var(--muted); }
+.filter-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { font-size:11px; padding:5px 12px; border-radius:20px; background:var(--surface2); color:var(--muted); border:1px solid var(--border); cursor:pointer; transition:color .12s,background .12s; }
+.chip:hover { color:var(--text); }
+.chip.active { background:var(--accent-dim); color:var(--accent); border-color:var(--accent-dim); }
+.banco-table th[data-sort] { cursor:pointer; user-select:none; }
+.banco-table th[data-sort]:hover { color:var(--text); }
+.banco-table th.sort-asc::after { content:" ▲"; color:var(--accent); }
+.banco-table th.sort-desc::after { content:" ▼"; color:var(--accent); }
+.pagination { display:flex; align-items:center; justify-content:center; gap:4px; }
+.page-btn { min-width:28px; height:28px; padding:0 8px; border-radius:6px; background:var(--surface2); color:var(--muted); border:1px solid var(--border); cursor:pointer; font-size:12px; }
+.page-btn:hover:not(:disabled) { color:var(--text); }
+.page-btn.active { background:var(--accent-dim); color:var(--accent); border-color:var(--accent-dim); }
+.page-btn:disabled { opacity:.4; cursor:default; }

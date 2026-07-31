@@ -95,12 +95,23 @@
       <!-- CONTAS A RECEBER -->
       <div class="page" id="page-Contas a Receber">
         <div class="banner" id="banner-receber"></div>
+        <div class="table-controls">
+          <input class="table-search" id="receber-search" placeholder="Buscar por cliente ou obra..." />
+          <div class="filter-chips" id="receber-chips"></div>
+        </div>
         <div class="banco-table">
           <table>
-            <thead><tr><th>Cliente</th><th>Obra</th><th>Data Venda</th><th>Valor</th><th>Status</th></tr></thead>
+            <thead><tr>
+              <th data-sort="Cliente">Cliente</th>
+              <th data-sort="Obra">Obra</th>
+              <th data-sort="Data Venda">Data Venda</th>
+              <th data-sort="Total a Receber">Valor</th>
+              <th>Status</th>
+            </tr></thead>
             <tbody id="receber-tbody"></tbody>
           </table>
         </div>
+        <div class="pagination" id="receber-pagination"></div>
         <div class="ind-grid">
           <div class="ind-card"><div class="ind-label">Total vencido</div><div class="ind-value" style="color:#E38C8C" id="rec-total-valor">—</div><div class="ind-sub" id="rec-total-sub">—</div></div>
           <div class="ind-card"><div class="ind-label">Clientes inadimplentes</div><div class="ind-value" id="rec-clientes-valor">—</div><div class="ind-sub" id="rec-clientes-sub">—</div></div>
@@ -116,12 +127,20 @@
       <!-- BANCOS -->
       <div class="page" id="page-Bancos">
         <div class="cards" id="banco-cards"></div>
+        <div class="table-controls">
+          <input class="table-search" id="bancos-search" placeholder="Buscar banco..." />
+        </div>
         <div class="banco-table">
           <table>
-            <thead><tr><th>Banco</th><th>Saldo</th><th>Participação</th></tr></thead>
+            <thead><tr>
+              <th data-sort="Descri_banco">Banco</th>
+              <th data-sort="saldo">Saldo</th>
+              <th>Participação</th>
+            </tr></thead>
             <tbody id="bancos-tbody"></tbody>
           </table>
         </div>
+        <div class="pagination" id="bancos-pagination"></div>
         <div class="chart-card">
           <div class="chart-title">Saldo por Banco</div>
           <div class="chart-wrap"><canvas id="bancosChart"></canvas></div>
@@ -194,6 +213,7 @@
 <script src="js/derive.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/tables.js"></script>
+<script src="js/table-controls.js"></script>
 <script src="js/ai-panel.js"></script>
 <script src="js/app.js"></script>
 </body>

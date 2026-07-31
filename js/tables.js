@@ -115,13 +115,12 @@ function renderBancosCards(state) {
   ]);
 }
 
-function renderBancosTable(state) {
-  const { bancos, bancoStats } = state;
+function renderBancosTable(bancos, bancoStats) {
   const bancosTbody = document.getElementById('bancos-tbody');
   bancosTbody.innerHTML = '';
-  bancos.forEach((b, i) => {
+  bancos.forEach(b => {
     const pct = participacaoPct(b.saldo, bancoStats);
-    const cor = colorForIndex(i);
+    const cor = colorForBank(b.Descri_banco);
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="banco-dot" style="background:${cor}"></span>${b.Descri_banco}</td>
