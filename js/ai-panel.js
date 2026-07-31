@@ -1,5 +1,4 @@
 // ── AI panel (shared logic, two instances) ────────────
-// Rule-based for now; replaced by a real model call (via n8n webhook) in a later PR.
 const PERGUNTAS = [
   "Qual o saldo total disponível?",
   "Qual banco possui maior saldo?",
@@ -9,6 +8,8 @@ const PERGUNTAS = [
   "Existe concentração excessiva de recursos?",
 ];
 
+// Rule-based fallback, used only while N8N_WEBHOOK_URL isn't configured yet
+// (see n8n/README.md). Once it's set, real questions go to the model instead.
 function gerarResposta(pergunta, state) {
   const { kpis, bancoStats } = state;
   const p = pergunta.toLowerCase();
@@ -22,6 +23,25 @@ function gerarResposta(pergunta, state) {
   return `Não foi possível localizar essa informação nos dados disponíveis no momento.`;
 }
 
+async function askAI(pergunta) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: pergunta }),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Webhook respondeu ${res.status}`);
+    const data = await res.json();
+    if (!data.answer) throw new Error('Resposta sem campo "answer"');
+    return data.answer;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function setupAI(state, messagesId, quickId, inputId, sendId) {
   const msgsEl = document.getElementById(messagesId);
   const inputEl = document.getElementById(inputId);
@@ -33,19 +53,37 @@ function setupAI(state, messagesId, quickId, inputId, sendId) {
     msgsEl.innerHTML = '';
     msgs.forEach(m => {
       const d = document.createElement('div');
-      d.className = `message ${m.role}`;
+      d.className = `message ${m.role}` + (m.pending ? ' pending' : '');
       d.textContent = m.text;
       msgsEl.appendChild(d);
     });
     msgsEl.scrollTop = msgsEl.scrollHeight;
   }
 
-  function send(text) {
+  async function send(text) {
     if (!text.trim()) return;
     msgs.push({ role:'user', text });
-    msgs.push({ role:'ai', text:gerarResposta(text, state) });
-    render();
     inputEl.value = '';
+
+    if (!N8N_WEBHOOK_URL) {
+      msgs.push({ role:'ai', text: gerarResposta(text, state) });
+      render();
+      return;
+    }
+
+    const pendingMsg = { role:'ai', text:'Consultando…', pending:true };
+    msgs.push(pendingMsg);
+    render();
+    try {
+      const answer = await askAI(text);
+      pendingMsg.text = answer;
+      pendingMsg.pending = false;
+    } catch (err) {
+      console.error(err);
+      pendingMsg.text = 'Não consegui falar com a IA agora. Verifique se o workflow do n8n está ativo e tente novamente.';
+      pendingMsg.pending = false;
+    }
+    render();
   }
 
   const qEl = document.getElementById(quickId);

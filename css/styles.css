@@ -108,6 +108,7 @@ canvas { display:block; }
 .message { font-size:12px;line-height:1.6;padding:8px 12px;border-radius:8px; }
 .message.ai { background:var(--surface2); }
 .message.user { background:var(--accent-dim);margin-left:20%; }
+.message.pending { color:var(--muted); font-style:italic; }
 .quick-btns { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px; }
 .quick-btn { font-size:10.5px;padding:4px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:color .12s,background .12s; }
 .quick-btn:hover { color:var(--text);background:var(--accent-dim); }
