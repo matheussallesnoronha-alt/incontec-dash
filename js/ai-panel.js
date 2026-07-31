@@ -82,6 +82,7 @@ function setupAI(state, messagesId, quickId, inputId, sendId) {
       console.error(err);
       pendingMsg.text = 'Não consegui falar com a IA agora. Verifique se o workflow do n8n está ativo e tente novamente.';
       pendingMsg.pending = false;
+      showToast('Não foi possível falar com a IA', 'error');
     }
     render();
   }

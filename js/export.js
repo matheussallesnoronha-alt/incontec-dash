@@ -21,38 +21,56 @@ function renderReportLog() {
 }
 
 function exportExtratoCSV(bancos) {
-  const data = bancos.map(b => ({ Banco: b.Descri_banco, Saldo: b.saldo }));
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Extrato");
-  XLSX.writeFile(wb, `extrato-consolidado-${todayStamp()}.csv`);
-  logReport("Extrato Consolidado", "CSV");
+  try {
+    const data = bancos.map(b => ({ Banco: b.Descri_banco, Saldo: b.saldo }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Extrato");
+    XLSX.writeFile(wb, `extrato-consolidado-${todayStamp()}.csv`);
+    logReport("Extrato Consolidado", "CSV");
+    showToast("Extrato Consolidado exportado (CSV)", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Falha ao exportar o Extrato Consolidado", "error");
+  }
 }
 
 function exportPosicaoXLSX(bancos) {
-  const data = bancos.map(b => ({ Banco: b.Descri_banco, Saldo: b.saldo }));
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Posição de Caixa");
-  XLSX.writeFile(wb, `posicao-de-caixa-${todayStamp()}.xlsx`);
-  logReport("Posição de Caixa", "Excel");
+  try {
+    const data = bancos.map(b => ({ Banco: b.Descri_banco, Saldo: b.saldo }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Posição de Caixa");
+    XLSX.writeFile(wb, `posicao-de-caixa-${todayStamp()}.xlsx`);
+    logReport("Posição de Caixa", "Excel");
+    showToast("Posição de Caixa exportada (Excel)", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Falha ao exportar a Posição de Caixa", "error");
+  }
 }
 
 function exportDrePDF(vendasObra) {
-  const doc = new jspdf.jsPDF();
-  doc.setFontSize(14);
-  doc.text("DRE Gerencial — Vendas x Recebimentos por Obra", 14, 16);
-  doc.setFontSize(9);
-  doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, 22);
-  doc.autoTable({
-    startY: 28,
-    head: [["Obra", "Vendas", "Valor Vendido", "Valor Recebido"]],
-    body: vendasObra.map(v => [v.Obra, v.vendas, fmtBRL(v.valor_vendido), fmtBRL(v.valor_recebido)]),
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [111, 227, 166], textColor: [6, 20, 12] },
-  });
-  doc.save(`dre-gerencial-${todayStamp()}.pdf`);
-  logReport("DRE Gerencial", "PDF");
+  try {
+    const doc = new jspdf.jsPDF();
+    doc.setFontSize(14);
+    doc.text("DRE Gerencial — Vendas x Recebimentos por Obra", 14, 16);
+    doc.setFontSize(9);
+    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, 22);
+    doc.autoTable({
+      startY: 28,
+      head: [["Obra", "Vendas", "Valor Vendido", "Valor Recebido"]],
+      body: vendasObra.map(v => [v.Obra, v.vendas, fmtBRL(v.valor_vendido), fmtBRL(v.valor_recebido)]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [111, 227, 166], textColor: [6, 20, 12] },
+    });
+    doc.save(`dre-gerencial-${todayStamp()}.pdf`);
+    logReport("DRE Gerencial", "PDF");
+    showToast("DRE Gerencial exportado (PDF)", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Falha ao exportar o DRE Gerencial", "error");
+  }
 }
 
 function todayStamp() {

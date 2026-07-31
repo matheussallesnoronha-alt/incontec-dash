@@ -156,3 +156,22 @@ canvas { display:block; }
 .page-btn:hover:not(:disabled) { color:var(--text); }
 .page-btn.active { background:var(--accent-dim); color:var(--accent); border-color:var(--accent-dim); }
 .page-btn:disabled { opacity:.4; cursor:default; }
+
+/* Page transitions */
+.page.active { animation: pageIn .2s ease; }
+@keyframes pageIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+/* Card hover */
+.card, .ind-card, .chart-card { transition: border-color .15s ease, transform .15s ease; }
+.card:hover, .ind-card:hover { border-color: var(--accent-dim); transform: translateY(-2px); }
+
+/* Toasts */
+.toast-container { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:200; }
+.toast { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 16px; font-size:12px; color:var(--text); box-shadow:0 8px 24px rgba(0,0,0,.35); max-width:320px; animation: toastIn .18s ease; }
+.toast.error { border-color:#E38C8C; color:#E38C8C; }
+@keyframes toastIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .page.active, .toast { animation:none !important; }
+  .card, .ind-card, .chart-card { transition:none !important; }
+}
