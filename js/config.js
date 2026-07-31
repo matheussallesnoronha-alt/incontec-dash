@@ -3,5 +3,4 @@
 const SUPABASE_URL = "https://cusdjjbsvnbvspqzhkjd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1c2RqamJzdm5idnNwcXpoa2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjkzMzEsImV4cCI6MjA5OTEwNTMzMX0.8wxVDzI6Pk84cv80XUWy3YZMXOHHr_3sBInDppmw5FY";
 
-// Filled in after importing n8n/incontec-ai-workflow.json and activating it.
-const N8N_WEBHOOK_URL = "";
+const N8N_WEBHOOK_URL = "https://n8n.incontec.com.br/webhook/691d5bfd-e73f-4b59-9c0e-b26a298f6943";

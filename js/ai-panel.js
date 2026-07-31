@@ -30,13 +30,13 @@ async function askAI(pergunta) {
     const res = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: pergunta }),
+      body: JSON.stringify({ pergunta }),
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`Webhook respondeu ${res.status}`);
     const data = await res.json();
-    if (!data.answer) throw new Error('Resposta sem campo "answer"');
-    return data.answer;
+    if (!data.resposta) throw new Error('Resposta sem campo "resposta"');
+    return data.resposta;
   } finally {
     clearTimeout(timeout);
   }

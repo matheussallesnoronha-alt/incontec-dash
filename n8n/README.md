@@ -1,69 +1,70 @@
 # INCONTEC AI — workflow do n8n
 
-Este workflow recebe a pergunta do painel "INCONTEC AI" do dashboard, busca dados
-reais no Supabase, monta um prompt e chama a API da Anthropic (Claude) para gerar
-a resposta. A chave da IA e a `service_role key` do Supabase ficam guardadas nas
-credenciais do n8n — nunca no dashboard (HTML/JS), que é público.
+A IA do dashboard usa um workflow já existente no n8n do Incontec, chamado
+**"Incontec AI - Assistente Financeira"**. Ele estava criado mas nunca tinha
+funcionado (apontava para uma tabela `contas_receber_calc` que não existe mais
+no Supabase, sem autenticação, e sem nó de resposta configurado corretamente).
+Foi corrigido diretamente no editor do n8n, sem precisar de um workflow novo.
 
-## 1. Importar o workflow
+## Fluxo atual
 
-No n8n: **Workflows → Import from File** e selecione `incontec-ai-workflow.json`.
+```
+Webhook (POST) → Buscar dados (Supabase) → Montar contexto (Code)
+  → Chamar Claude (HTTP Request) → Extrair resposta (Code) → Respond to Webhook
+```
 
-## 2. Criar as credenciais
+1. **Webhook** — recebe `{ "pergunta": "..." }` via POST. Sem autenticação
+   (a URL em si, com um UUID aleatório, é o único "segredo").
+2. **Buscar dados (Supabase)** — consulta `vw_inadimplencia` (Cliente, Obra,
+   Total a Receber, Data Venda), autenticado via credencial "Custom Auth
+   account" (headers `apikey`/`Authorization` com a `service_role key` do
+   Supabase — nunca a `anon key`, já que aqui a query roda no servidor).
+3. **Montar contexto (Code)** — agrega os dados (total vencido, top 10
+   clientes) e monta o corpo da chamada à Anthropic já como JSON string
+   (`claudeBody`), evitando problemas de escaping de aspas/quebras de linha.
+4. **Chamar Claude (HTTP Request)** — POST para `api.anthropic.com/v1/messages`,
+   corpo = `{{ $json.claudeBody }}`. A chave da Anthropic está direto no
+   header `x-api-key` deste nó (não numa credencial dedicada — ideal seria
+   migrar para uma credencial Header Auth, mas funciona como está).
+5. **Extrair resposta (Code)** — pega `content[0].text` da resposta da
+   Anthropic e retorna `{ resposta: "..." }`.
+6. **Respond to Webhook** — modo "First Incoming Item", devolve o item do
+   passo anterior direto, sem template manual (evita o mesmo problema de
+   escaping do passo 3).
 
-O n8n não exporta valores de credenciais (por segurança), então você precisa criar
-duas credenciais do tipo **Header Auth** manualmente:
+## URL de produção
 
-**"Supabase Service Role"**
-- Name: `apikey`
-- Value: a `service_role key` do seu projeto Supabase (em Project Settings → API).
-  ⚠️ Essa chave dá acesso total ao banco — nunca a coloque no frontend.
+Já configurada em [`js/config.js`](../js/config.js) (`N8N_WEBHOOK_URL`):
 
-Depois, abra os nós **Fetch KPIs** e **Fetch Top Bancos** e, no campo de
-autenticação, selecione a credencial "Supabase Service Role". Você também precisa
-adicionar manualmente o header `Authorization: Bearer <mesma service_role key>`
-em cada um desses dois nós (aba Headers), já que o PostgREST exige os dois
-headers (`apikey` e `Authorization`).
-
-**"Anthropic API Key"**
-- Name: `x-api-key`
-- Value: sua chave de API da Anthropic (console.anthropic.com).
-
-Abra o nó **Call Claude** e selecione essa credencial.
-
-## 3. Pegar a URL do webhook
-
-Abra o nó **Webhook**, copie a **Production URL** (algo como
-`https://seu-n8n.app/webhook/incontec-ai`).
-
-Cole essa URL em [`js/config.js`](../js/config.js), na constante `N8N_WEBHOOK_URL`.
-
-## 4. Ativar
-
-Ative o workflow (toggle no canto superior direito do editor). Sem isso, a URL de
-produção do webhook não responde.
+```
+https://n8n.incontec.com.br/webhook/691d5bfd-e73f-4b59-9c0e-b26a298f6943
+```
 
 ## Testar sem o dashboard
 
 ```bash
-curl -X POST "https://seu-n8n.app/webhook/incontec-ai" \
+curl -X POST "https://n8n.incontec.com.br/webhook/691d5bfd-e73f-4b59-9c0e-b26a298f6943" \
   -H "Content-Type: application/json" \
-  -d '{"question":"Qual o saldo total disponível?"}'
+  -d '{"pergunta":"Qual o total vencido?"}'
 ```
 
-Deve retornar `{"answer":"..."}`.
+Deve retornar `{"resposta":"..."}`.
 
-## O que o workflow faz
+## Pontos de atenção para o futuro
 
-1. **Webhook** — recebe `{ question }` via POST.
-2. **Fetch KPIs** / **Fetch Top Bancos** — busca `vw_kpis` e os 5 maiores saldos de
-   `vw_bancos` no Supabase (com a `service_role key`, que ignora RLS).
-3. **Build Prompt** — monta um prompt em português com esses dados reais e a
-   pergunta do usuário, instruindo o modelo a não inventar números fora dos dados
-   fornecidos.
-4. **Call Claude** — chama a API da Anthropic (`claude-sonnet-4-5`) com esse prompt.
-5. **Extract Answer** / **Respond to Webhook** — devolve `{ answer }` para o
-   dashboard.
-
-Se quiser usar outro provedor (OpenAI, etc.), troque só o nó **Call Claude** —
-o resto do workflow não muda.
+- **Sem autenticação no webhook**: qualquer pessoa com a URL pode chamar e
+  consumir crédito da API da Anthropic. Como o path é um UUID aleatório, não é
+  adivinhável, mas para mais segurança dá para adicionar Header Auth no nó
+  Webhook.
+- **Chave da Anthropic em texto puro** no nó "Chamar Claude" (não numa
+  credencial). Funciona, mas fica visível para quem tiver acesso de edição a
+  esse workflow no n8n.
+- **`vw_inadimplencia` só tem títulos vencidos** (ver nota no
+  [dashboard](../js/derive.js)) — a IA está instruída a responder só com base
+  nesses dados, então perguntas sobre recebíveis "em dia" não terão resposta
+  precisa até existir uma fonte melhor.
+- Há também um branch de IA (AI Agent + ferramentas Supabase) que foi montado
+  no workflow **"Projeto Final - Visconde"** durante a investigação inicial,
+  antes de decidir usar o workflow dedicado acima. Ficou com o path do webhook
+  renomeado para `incontec-ai-visconde-backup` (inativo, não interfere em
+  nada) — pode ser removido com segurança se não for usado.
