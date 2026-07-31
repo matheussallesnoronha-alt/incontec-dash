@@ -77,15 +77,15 @@ function showLoadError(err) {
 }
 
 async function loadAndRender() {
-  const [kpis, bancos, fluxoCaixa, fluxoMensal, recebiveis] = await Promise.all([
-    getKpis(), getBancos(), getFluxoCaixa(), getFluxoMensal(), getRecebiveis(),
+  const [kpis, bancos, fluxoCaixa, fluxoMensal, recebiveis, vendasObra] = await Promise.all([
+    getKpis(), getBancos(), getFluxoCaixa(), getFluxoMensal(), getRecebiveis(), getVendasObra(),
   ]);
 
   const bancoStats = computeBancoStats(bancos);
   const receberSummary = computeReceberSummary(recebiveis);
   const pmr = computePMR(recebiveis);
 
-  const state = { kpis, bancos, bancoStats, fluxoCaixa, fluxoMensal, receber: { rows: recebiveis, summary: receberSummary }, pmr };
+  const state = { kpis, bancos, bancoStats, fluxoCaixa, fluxoMensal, receber: { rows: recebiveis, summary: receberSummary }, pmr, vendasObra };
 
   renderBanner(state);
   renderDashboardCards(state);
@@ -106,6 +106,7 @@ async function loadAndRender() {
 
   setupAI(state, 'messages',  'quickBtns',  'aiInput',  'sendBtn');
   setupAI(state, 'messages2', 'quickBtns2', 'aiInput2', 'sendBtn2');
+  setupExports(state);
 
   setLastUpdated(new Date());
   document.getElementById('loadingOverlay').classList.add('hidden');

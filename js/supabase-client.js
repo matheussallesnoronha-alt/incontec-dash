@@ -28,3 +28,8 @@ async function getFluxoMensal() {
 async function getRecebiveis() {
   return fetchView("vw_inadimplencia");
 }
+
+async function getVendasObra() {
+  const rows = await fetchView("vw_vendas_obra");
+  return rows.sort((a, b) => b.valor_vendido - a.valor_vendido);
+}
