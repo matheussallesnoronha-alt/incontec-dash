@@ -129,3 +129,11 @@ canvas { display:block; }
   .charts-grid,.fluxo-grid,.ind-grid { grid-template-columns:1fr; }
 }
 @media (max-width:480px) { .cards { grid-template-columns:1fr; } }
+
+/* Loading / error */
+.loading-overlay { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; z-index:100; font-size:13px; color:var(--muted); }
+.loading-overlay.hidden { display:none; }
+.spinner { width:28px; height:28px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--accent); animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.retry-btn { margin-top:4px; font-size:12px; padding:8px 16px; border-radius:8px; background:var(--accent-dim); color:var(--accent); border:1px solid var(--border); cursor:pointer; }
+.error-banner { background:rgba(227,140,140,.1); border:1px solid #E38C8C; border-radius:12px; padding:16px; display:flex; align-items:flex-start; gap:12px; font-size:13px; line-height:1.6; color:#E38C8C; }

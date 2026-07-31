@@ -13,6 +13,10 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div id="loadingText">Carregando dados do Supabase…</div>
+</div>
 <div class="mobile-tabs" id="mobileTabs"></div>
 <div class="app">
   <aside class="sidebar">
@@ -35,7 +39,7 @@
       </div>
       <div class="topbar-update">
         <div class="topbar-update-label">Última atualização</div>
-        <div class="topbar-update-value">há 4 minutos</div>
+        <div class="topbar-update-value" id="lastUpdated">—</div>
       </div>
     </div>
     <div class="content">
@@ -90,10 +94,7 @@
 
       <!-- CONTAS A RECEBER -->
       <div class="page" id="page-Contas a Receber">
-        <div class="banner">
-          <span style="color:var(--accent);flex-shrink:0;margin-top:2px;width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg></span>
-          <span><span class="hi">Contas a Receber:</span> Total em aberto de <span class="val">R$&nbsp;847.300</span>. <span class="warn">3 títulos vencidos</span> aguardando cobrança.</span>
-        </div>
+        <div class="banner" id="banner-receber"></div>
         <div class="banco-table">
           <table>
             <thead><tr><th>Cliente</th><th>Obra</th><th>Data Venda</th><th>Valor</th><th>Status</th></tr></thead>
@@ -101,29 +102,15 @@
           </table>
         </div>
         <div class="ind-grid">
-          <div class="ind-card"><div class="ind-label">A vencer (30 dias)</div><div class="ind-value">R$ 512k</div><div class="ind-sub">6 títulos</div></div>
-          <div class="ind-card"><div class="ind-label">Vencidos</div><div class="ind-value" style="color:#E38C8C">R$ 195k</div><div class="ind-sub">3 títulos em atraso</div></div>
-          <div class="ind-card"><div class="ind-label">Recebido no mês</div><div class="ind-value">R$ 140k</div><div class="ind-sub">4 títulos liquidados</div></div>
+          <div class="ind-card"><div class="ind-label">Total vencido</div><div class="ind-value" style="color:#E38C8C" id="rec-total-valor">—</div><div class="ind-sub" id="rec-total-sub">—</div></div>
+          <div class="ind-card"><div class="ind-label">Clientes inadimplentes</div><div class="ind-value" id="rec-clientes-valor">—</div><div class="ind-sub" id="rec-clientes-sub">—</div></div>
+          <div class="ind-card"><div class="ind-label">Maior atraso</div><div class="ind-value" id="rec-atraso-valor">—</div><div class="ind-sub" id="rec-atraso-sub">—</div></div>
         </div>
       </div>
 
       <!-- CONTAS A PAGAR -->
       <div class="page" id="page-Contas a Pagar">
-        <div class="banner">
-          <span style="color:#E3C26A;flex-shrink:0;margin-top:2px;width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg></span>
-          <span><span class="hi">Contas a Pagar:</span> Total comprometido de <span class="val">R$&nbsp;634.500</span> nos próximos 30 dias. <span class="warn">2 vencimentos hoje.</span></span>
-        </div>
-        <div class="banco-table">
-          <table>
-            <thead><tr><th>Fornecedor</th><th>Categoria</th><th>Data</th><th>Valor</th><th>Status</th></tr></thead>
-            <tbody id="pagar-tbody"></tbody>
-          </table>
-        </div>
-        <div class="ind-grid">
-          <div class="ind-card"><div class="ind-label">Vence hoje</div><div class="ind-value" style="color:#E3C26A">R$ 43k</div><div class="ind-sub">2 obrigações</div></div>
-          <div class="ind-card"><div class="ind-label">Próximos 7 dias</div><div class="ind-value">R$ 178k</div><div class="ind-sub">8 obrigações</div></div>
-          <div class="ind-card"><div class="ind-label">Pago no mês</div><div class="ind-value">R$ 413k</div><div class="ind-sub">22 títulos quitados</div></div>
-        </div>
+        <div id="pagar-content"></div>
       </div>
 
       <!-- BANCOS -->
@@ -175,7 +162,6 @@
       <div class="page" id="page-Indicadores">
         <div class="ind-grid" id="ind-grid"></div>
         <div class="charts-grid">
-          <div class="chart-card"><div class="chart-title">Índice de Liquidez (últimos 6 meses)</div><div class="chart-wrap"><canvas id="liqChart"></canvas></div></div>
           <div class="chart-card"><div class="chart-title">Prazo Médio de Recebimento (dias)</div><div class="chart-wrap"><canvas id="pmrChart"></canvas></div></div>
         </div>
       </div>
@@ -203,10 +189,12 @@
 
 <script src="js/format.js"></script>
 <script src="js/icons.js"></script>
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/derive.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/tables.js"></script>
 <script src="js/ai-panel.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

@@ -14,11 +14,9 @@ let activeLabel = "Dashboard";
 
 function setActive(label) {
   activeLabel = label;
-  // pages
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const pg = document.getElementById('page-' + label);
   if (pg) pg.classList.add('active');
-  // sidebar
   document.querySelectorAll('.nav-item').forEach(b => {
     const isActive = b.dataset.label === label;
     b.classList.toggle('active', isActive);
@@ -29,37 +27,90 @@ function setActive(label) {
       ${isActive ? '<span class="nav-dot"></span>' : ''}
     `;
   });
-  // mobile tabs
   document.querySelectorAll('.mobile-tab').forEach(b => b.classList.toggle('active', b.dataset.label === label));
-  // topbar
   const nav = NAV.find(n => n.label === label);
   document.getElementById('pageTitle').textContent = label;
   document.getElementById('pageSubtitle').textContent = nav ? nav.subtitle : '';
 }
 
-// Render sidebar
-const sidebarNav = document.getElementById('sidebarNav');
-NAV.forEach(item => {
-  const btn = document.createElement('button');
-  btn.className = 'nav-item' + (item.label === activeLabel ? ' active' : '');
-  btn.dataset.label = item.label;
-  btn.onclick = () => setActive(item.label);
-  btn.innerHTML = `
-    ${item.label === activeLabel ? '<span class="active-bar"></span>' : ''}
-    <span class="nav-icon" style="color:${item.label===activeLabel?'var(--accent)':'var(--muted)'}">${I[item.iconKey]}</span>
-    <span style="flex:1">${item.label}</span>
-    ${item.label === activeLabel ? '<span class="nav-dot"></span>' : ''}
-  `;
-  sidebarNav.appendChild(btn);
-});
+function renderNavShell() {
+  const sidebarNav = document.getElementById('sidebarNav');
+  NAV.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-item' + (item.label === activeLabel ? ' active' : '');
+    btn.dataset.label = item.label;
+    btn.onclick = () => setActive(item.label);
+    btn.innerHTML = `
+      ${item.label === activeLabel ? '<span class="active-bar"></span>' : ''}
+      <span class="nav-icon" style="color:${item.label===activeLabel?'var(--accent)':'var(--muted)'}">${I[item.iconKey]}</span>
+      <span style="flex:1">${item.label}</span>
+      ${item.label === activeLabel ? '<span class="nav-dot"></span>' : ''}
+    `;
+    sidebarNav.appendChild(btn);
+  });
 
-// Render mobile tabs
-const mobileTabs = document.getElementById('mobileTabs');
-NAV.forEach(item => {
-  const btn = document.createElement('button');
-  btn.className = 'mobile-tab' + (item.label === activeLabel ? ' active' : '');
-  btn.dataset.label = item.label;
-  btn.onclick = () => setActive(item.label);
-  btn.innerHTML = `<span style="width:13px;height:13px;display:inline-flex">${I[item.iconKey]}</span>${item.label}`;
-  mobileTabs.appendChild(btn);
-});
+  const mobileTabs = document.getElementById('mobileTabs');
+  NAV.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'mobile-tab' + (item.label === activeLabel ? ' active' : '');
+    btn.dataset.label = item.label;
+    btn.onclick = () => setActive(item.label);
+    btn.innerHTML = `<span style="width:13px;height:13px;display:inline-flex">${I[item.iconKey]}</span>${item.label}`;
+    mobileTabs.appendChild(btn);
+  });
+}
+
+function setLastUpdated(date) {
+  document.getElementById('lastUpdated').textContent = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+}
+
+function showLoadError(err) {
+  console.error(err);
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.innerHTML = `
+    <div class="error-banner" style="max-width:420px">
+      <span style="width:18px;height:18px;flex-shrink:0">${I.alert}</span>
+      <span>Não foi possível carregar os dados do Supabase. ${err.message || ''}</span>
+    </div>
+    <button class="retry-btn" onclick="location.reload()">Tentar novamente</button>
+  `;
+}
+
+async function loadAndRender() {
+  const [kpis, bancos, fluxoCaixa, fluxoMensal, recebiveis] = await Promise.all([
+    getKpis(), getBancos(), getFluxoCaixa(), getFluxoMensal(), getRecebiveis(),
+  ]);
+
+  const bancoStats = computeBancoStats(bancos);
+  const receberSummary = computeReceberSummary(recebiveis);
+  const pmr = computePMR(recebiveis);
+
+  const state = { kpis, bancos, bancoStats, fluxoCaixa, fluxoMensal, receber: { rows: recebiveis, summary: receberSummary }, pmr };
+
+  renderBanner(state);
+  renderDashboardCards(state);
+  renderFluxoPage(state);
+  renderReceberBanner(state);
+  renderReceberTable(recebiveis);
+  renderReceberSummaryCards(state);
+  renderPagarEmptyState();
+  renderBancosCards(state);
+  renderBancosTable(state);
+  renderIndicadoresCards(state);
+
+  initChartDefaults();
+  renderDashboardCharts(state);
+  renderFluxoChart(state);
+  renderBancosChart(state);
+  renderIndicadoresChart(state);
+
+  setupAI(state, 'messages',  'quickBtns',  'aiInput',  'sendBtn');
+  setupAI(state, 'messages2', 'quickBtns2', 'aiInput2', 'sendBtn2');
+
+  setLastUpdated(new Date());
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+renderNavShell();
+setActive(activeLabel);
+loadAndRender().catch(showLoadError);
